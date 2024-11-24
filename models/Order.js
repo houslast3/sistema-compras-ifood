@@ -1,68 +1,92 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const orderSchema = new mongoose.Schema({
-    customer: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+const Order = sequelize.define('Order', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    store: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Store',
-        required: true
-    },
-    driver: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    },
-    items: [{
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-            required: true
-        },
-        quantity: {
-            type: Number,
-            required: true
-        },
-        price: {
-            type: Number,
-            required: true
-        },
-        notes: String
-    }],
     status: {
-        type: String,
-        enum: ['pending', 'confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled'],
-        default: 'pending'
+        type: DataTypes.ENUM('pending', 'paid', 'preparing', 'ready', 'in_delivery', 'delivered', 'cancelled'),
+        defaultValue: 'pending'
+    },
+    total: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
+    },
+    deliveryFee: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0
     },
     deliveryAddress: {
-        street: String,
-        number: String,
-        complement: String,
-        neighborhood: String,
-        city: String,
-        state: String,
-        zipCode: String
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    subtotal: Number,
-    deliveryFee: Number,
-    total: Number,
-    paymentMethod: {
-        type: String,
-        enum: ['pix'],
-        required: true
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
     },
-    paymentStatus: {
-        type: String,
-        enum: ['pending', 'paid', 'failed'],
-        default: 'pending'
+    storeId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Stores',
+            key: 'id'
+        }
     },
-    pixCode: String,
-    createdAt: {
-        type: Date,
-        default: Date.now
+    driverId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
+    },
+    payment: {
+        type: DataTypes.JSONB,
+        defaultValue: {}
     }
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+const OrderItem = sequelize.define('OrderItem', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    },
+    price: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
+    },
+    orderId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Orders',
+            key: 'id'
+        }
+    },
+    productId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Products',
+            key: 'id'
+        }
+    }
+});
+
+// Define associations
+Order.hasMany(OrderItem);
+OrderItem.belongsTo(Order);
+
+module.exports = { Order, OrderItem };

@@ -1,54 +1,58 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const storeSchema = new mongoose.Schema({
-    owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+const Store = sequelize.define('Store', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
     name: {
-        type: String,
-        required: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    description: String,
-    logo: String,
-    coverImage: String,
-    category: {
-        type: String,
-        required: true
+    description: {
+        type: DataTypes.TEXT
     },
     address: {
-        street: String,
-        number: String,
-        complement: String,
-        neighborhood: String,
-        city: String,
-        state: String,
-        zipCode: String
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    openingHours: {
-        monday: { open: String, close: String },
-        tuesday: { open: String, close: String },
-        wednesday: { open: String, close: String },
-        thursday: { open: String, close: String },
-        friday: { open: String, close: String },
-        saturday: { open: String, close: String },
-        sunday: { open: String, close: String }
+    phone: {
+        type: DataTypes.STRING,
+        allowNull: false
     },
-    isOpen: {
-        type: Boolean,
-        default: false
+    category: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    image: {
+        type: DataTypes.STRING
     },
     rating: {
-        type: Number,
-        default: 0
+        type: DataTypes.FLOAT,
+        defaultValue: 0
     },
-    deliveryFee: Number,
-    minimumOrder: Number,
-    createdAt: {
-        type: Date,
-        default: Date.now
+    isOpen: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    deliveryFee: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0
+    },
+    minOrder: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0
+    },
+    ownerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id'
+        }
     }
 });
 
-module.exports = mongoose.model('Store', storeSchema);
+module.exports = Store;
